@@ -8,21 +8,16 @@ import Data.Text.Read
 
 day01 :: IO (Either String Int)
 day01 = do
-  masses <- readIntsFromFile "data/day01.input"
-  return $ calcConsumption masses
+  readResult <- readIntsFromFile "data/day01.input"
+  return $ fmap calcFuelConsumption readResult
   where
-
-calcConsumption :: Either String [Int] -> Either String Int 
-calcConsumption (Right masses) = Right $ sum (map fuelConsumption masses)
-calcConsumption (Left error) = Left error
-
-fuelConsumption :: Int -> Int
-fuelConsumption mass = (div mass 3) - 2
+    calcFuelConsumption masses = sum $ (map fuelConsumption) masses
+    fuelConsumption mass = (div mass 3) - 2
 
 readIntsFromFile :: String -> IO (Either String [Int])
 readIntsFromFile fileName = do 
-  lines <- fmap Text.lines (Text.readFile fileName)
-  return $ traverse id (map toDecimal lines)
+  ls <- fmap Text.lines (Text.readFile fileName)
+  return $ traverse id (map toDecimal ls)
   where
     toDecimal text = fmap (fst) (decimal text)
   
