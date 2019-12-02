@@ -8,5 +8,5 @@ main = do
   -- putStrLn $ show day1Part1Result 
   -- day1Part2Result <- day01part2
   -- putStrLn $ show day1Part2Result
-  day02Result <- day02
+  day02Result <- day02part1
   putStrLn $ show day02Result
