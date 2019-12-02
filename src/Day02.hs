@@ -6,9 +6,29 @@ data IntcodeProgram = IntcodeProgram  { memory :: [Int] }
 
 day02part1 :: IO (Either String [Int])
 day02part1 = do
+  programOrError <- loadProgram
+  return $ fmap (memory . start . verb 2 . noun 12) programOrError
+
+day02part2 :: IO (Either String Int)
+day02part2 = do
+  programOrError <- loadProgram
+  return $ fmap (answer . findNounAndVerb) programOrError
+  where answer (n, v) = 100 * n + v
+      
+
+loadProgram :: IO (Either String IntcodeProgram)
+loadProgram = do
   lsOrError <- readCommaSeparatedLineFromFile "data/day02.input"
-  return $ fmap (\ls -> memory $ start . (verb 2) . (noun 12) $ IntcodeProgram ls) lsOrError
-  
+  return $ fmap IntcodeProgram lsOrError
+
+findNounAndVerb :: IntcodeProgram -> (Int, Int)
+findNounAndVerb program = find 0 0
+  where find n v
+          | head result == 19690720 = (n, v)
+          | n > 99 && v > 99        = (-1, -1)
+          | v > 99                  = find (n + 1) 0
+          | otherwise               = find n (v + 1)
+          where result = memory . start . (verb v) . (noun n) $  program
 
 noun :: Int -> IntcodeProgram -> IntcodeProgram
 noun val (IntcodeProgram m) = IntcodeProgram (replace m 1 val)
