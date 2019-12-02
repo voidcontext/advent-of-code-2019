@@ -2,17 +2,13 @@ module Day02 where
 
 import FileUtils
 
-data IntcodeProgram = IntcodeProgram  { memory :: [Int] }  
+newtype IntcodeProgram = IntcodeProgram  { memory :: [Int] }  
 
 day02part1 :: IO (Either String [Int])
-day02part1 = do
-  programOrError <- loadProgram
-  return $ fmap (memory . start . verb 2 . noun 12) programOrError
+day02part1 = fmap (memory . start . verb 2 . noun 12) <$> loadProgram
 
 day02part2 :: IO (Either String Int)
-day02part2 = do
-  programOrError <- loadProgram
-  return $ fmap (answer . findNounAndVerb) programOrError
+day02part2 = fmap (answer . findNounAndVerb) <$> loadProgram
   where answer (n, v) = 100 * n + v
       
 
@@ -28,7 +24,7 @@ findNounAndVerb program = find 0 0
           | n > 99 && v > 99        = (-1, -1)
           | v > 99                  = find (n + 1) 0
           | otherwise               = find n (v + 1)
-          where result = memory . start . (verb v) . (noun n) $  program
+          where result = memory . start . verb v . noun n $  program
 
 noun :: Int -> IntcodeProgram -> IntcodeProgram
 noun val (IntcodeProgram m) = IntcodeProgram (replace m 1 val)
@@ -37,7 +33,7 @@ verb :: Int -> IntcodeProgram -> IntcodeProgram
 verb val (IntcodeProgram m) = IntcodeProgram (replace m 2 val)
 
 start :: IntcodeProgram -> IntcodeProgram
-start program = run 0 program 
+start = run 0 
 
 run :: Int -> IntcodeProgram  -> IntcodeProgram
 run pointer program
@@ -54,10 +50,10 @@ runInstruction program pointer = run' (currentInstruction program pointer)
           
 
 currentOpcode :: IntcodeProgram -> Int -> Int
-currentOpcode program pointer = (memory program) !! pointer
+currentOpcode program pointer = memory program !! pointer
 
 currentInstruction :: IntcodeProgram -> Int -> [Int]
 currentInstruction program pointer = drop pointer $ memory program
   
 replace :: [Int] -> Int -> Int -> [Int]
-replace xs ind value = (take ind xs) ++ [value] ++ (drop (ind + 1) xs)
+replace xs ind value = take ind xs ++ [value] ++ drop (ind + 1) xs

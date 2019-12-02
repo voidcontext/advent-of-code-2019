@@ -8,14 +8,14 @@ readCommaSeparatedLineFromFile :: String -> IO (Either String [Int])
 readCommaSeparatedLineFromFile fileName = do
   ls <- fmap Text.lines (Text.readFile fileName)
   return $ parse ls
-  where parse (l:[]) = traverse id (map toDecimal (Text.split (==',') l))
-        parse _ = Left "There should be only 1 line" 
+  where parse [l] = traverse toDecimal (Text.split (==',') l)
+        parse _ = Left "There should be only 1 line"
             
 readIntsFromFile :: String -> IO (Either String [Int])
 readIntsFromFile fileName = do
   ls <- fmap Text.lines (Text.readFile fileName)
-  return $ traverse id (map toDecimal ls)
+  return $ traverse toDecimal ls
 
 toDecimal :: Text.Text -> Either String Int
-toDecimal text = fmap (fst) (decimal text)
+toDecimal text = fst <$> decimal text
   
