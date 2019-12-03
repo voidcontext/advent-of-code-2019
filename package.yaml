@@ -51,3 +51,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - advent-of-code2019
+    - hspec
+    - hspec-discover
