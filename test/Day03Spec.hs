@@ -20,6 +20,16 @@ spec = do
       lines' wp1 `shouldBe` [Line (0, 0) (8, 0), Line (8, 0) (8, 5), Line (8, 5) (3, 5), Line (3, 5) (3, 2)]
       lines' wp2 `shouldBe` [Line (0, 0) (0, 7), Line (0, 7) (6, 7), Line (6, 7) (6, 3), Line (6, 3) (2, 3)]
 
+  describe "intersect'" $ do
+    it "should return correct answer 1" $ do
+      intersect' (Line (6, 3) (2, 3)) (Line (3, 5) (3, 3))  `shouldBe` Just (3, 3)
+    it "should return correct answer 2" $ do
+      intersect' (Line (6, 3) (2, 3)) (Line (3, 3) (3, 5))  `shouldBe` Just (3, 3)
+    it "should return correct answer 3" $ do
+      intersect' (Line (2, 3) (6, 3)) (Line (3, 5) (3, 3))  `shouldBe` Just (3, 3)
+    it "should return correct answer 4" $ do
+      intersect' (Line (2, 3) (6, 3)) (Line (3, 3) (3, 5))  `shouldBe` Just (3, 3)
+
   describe "intersections" $ do
     it "should return intersections" $ do
       intersections wp1 wp2 `shouldBe` [(3, 3), (6, 5)]

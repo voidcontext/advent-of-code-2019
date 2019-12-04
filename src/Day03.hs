@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -fno-warn-type-defaults #-}
 
 module Day03  where
 
@@ -62,25 +63,20 @@ lines' (WirePath ps) =  foldl toLine ([] :: [Line]) ps
         toLine ls p = ls ++ [Line (p2 . last $ ls) (pathFrom  (p2 . last $ ls) p)]
         pathFrom (x, y) (Path dir step) = (x + xDiff dir step, y + yDiff dir step)  
 
+-- https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection#Given_two_points_on_each_line
 intersect' :: Line -> Line -> Maybe (Int, Int)
-intersect' (Line a b) (Line c d)
+intersect' (Line (x1, y1) (x2, y2)) (Line (x3, y3) (x4, y4))
   | determinant == 0 = Nothing
   | otherwise        = intersectionPoint
-  where a1 = snd b - snd a
-        b1 = fst a - fst b
-        c1 = a1 * (fst a) + b1 * (snd a)
-        a2 = snd d - snd c
-        b2 = fst c - fst d
-        c2 = a2 * (fst c) + b2 * (snd c)
-        determinant = a1 * b2 - a2 * b1
-        intersectionPoint
-          | pointOnSegment a b && pointOnSegment c d = Just (x, y)
-          | otherwise                                = Nothing
-          where x = (c1 * b2 - c2 * b1) `quot` determinant
-                y = (a1 * c1 - a2 * c1) `quot` determinant
-                pointOnSegment (x1, y1) (x2, y2) =
-                  min x1 x2 <= x && x <= max x1 x2 &&
-                  min y1 y2 <= y && y <= max y1 y2 
+  where
+    determinant = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+    intersectionPoint
+      | 0 <= t && t <= 1 && 0 <= u && u <= 1 = Just  (x1 + floor (t * fi' (x2 - x1)), y1 + floor (t * fi' (y2  - y1)))
+      | otherwise                            = Nothing
+      where
+        fi' = fromIntegral
+        t = fi' ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / fi' determinant
+        u = - (fi' ((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / fi' determinant)
 
 xDiff :: Direction -> Int -> Int
 xDiff UP _    = 0
