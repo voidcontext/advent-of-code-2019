@@ -14,5 +14,7 @@ main = do
   -- day02Part2Result <- day02part2
   -- putStrLn $ show day02Part2Result
 
-  day03Result <- day03
-  putStrLn $ show day03Result
+  day03Part1Result <- day03Part1
+  putStrLn $ show day03Part1Result
+  day03Part2Result <- day03Part2
+  putStrLn $ show day03Part2Result

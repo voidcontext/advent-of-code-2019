@@ -26,10 +26,23 @@ newtype WirePath = WirePath { paths :: [Path]} deriving (Eq, Show)
 debug :: a -> String ->  a
 debug = flip trace
 
-day03 :: IO (Either String Int)
-day03 = do
+day03Part1 :: IO (Either String Int)
+day03Part1 = do
   (x:y:_) <- loadFile "data/day03.input"
   return $ minManhattanDistance x y
+
+day03Part2 :: IO (Either String Int)
+day03Part2 = do
+  (x:y:_) <- loadFile "data/day03.input"
+  return $ minStepsToIntersection x y
+
+
+minStepsToIntersection :: Text.Text -> Text.Text -> Either String Int
+minStepsToIntersection a b = do
+  ca <- parseWirePath a
+  cb <- parseWirePath b
+  return $ minimum $ fmap (\p -> (calcSteps ca p) + (calcSteps cb p)) $ intersections ca cb
+
 
 minManhattanDistance :: Text.Text -> Text.Text -> Either String Int
 minManhattanDistance a b = do
@@ -78,6 +91,26 @@ intersect' (Line (x1, y1) (x2, y2)) (Line (x3, y3) (x4, y4))
         t = fi' ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / fi' determinant
         u = - (fi' ((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / fi' determinant)
 
+
+calcSteps :: WirePath -> (Int, Int) -> Int
+calcSteps wp point = moveAndCount (lines' wp) 0
+  where
+    moveAndCount [] _ = -1
+    moveAndCount ls count
+      | pointOnLine point h = count + distance (p1 h) point
+      | otherwise           = moveAndCount (tail ls) (count + distance (p1 h) (p2 h))
+      where h = head ls
+    
+pointOnLine :: (Int, Int) -> Line -> Bool
+pointOnLine (a, b) (Line (x1, y1) (x2, y2))
+  | x1 == x2 && x1 == a = min y1 y2 <= b && b <= max y1 y2 
+  | y1 == y2 && y1 == b = min x1 x2 <= a && a <= max x1 x2
+  | otherwise           = False
+
+distance :: (Int, Int) -> (Int, Int) -> Int
+distance (x1, y1) (x2, y2) = abs (x1 -x2) + abs (y1 - y2)
+
+  
 xDiff :: Direction -> Int -> Int
 xDiff UP _    = 0
 xDiff DOWN _  = 0
