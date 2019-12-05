@@ -2,19 +2,22 @@ module Main where
 
 import Lib
 
+import System.Environment
+import System.Exit
+
 main :: IO ()
 main = do
-  -- day1Part1Result <- day01part1
-  -- putStrLn $ show day1Part1Result 
-  -- day1Part2Result <- day01part2
-  -- putStrLn $ show day1Part2Result
+  args <- getArgs
+  runMain args
 
-  -- day02Part1Result <- day02part1
-  -- putStrLn $ show day02Part1Result
-  -- day02Part2Result <- day02part2
-  -- putStrLn $ show day02Part2Result
 
-  day03Part1Result <- day03Part1
-  putStrLn $ show day03Part1Result
-  day03Part2Result <- day03Part2
-  putStrLn $ show day03Part2Result
+runMain :: [String] -> IO ()
+runMain ["1"]   = day01Main
+runMain ["2"]   = day02Main
+runMain ["3"]   = day03Main
+runMain []      = putStrLn "Missing day number!"     >>= failure
+runMain [_]     = putStrLn "Unimplemented solution!" >>= failure
+runMain (_:_:_) = putStrLn "Too many params!"        >>= failure
+
+failure :: a -> IO a
+failure _ = exitWith $ ExitFailure 1

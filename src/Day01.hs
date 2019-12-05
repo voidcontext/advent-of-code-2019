@@ -2,6 +2,14 @@ module Day01 where
 
 import FileUtils
 
+day01Main :: IO ()
+day01Main = do
+  day1Part1Result <- day01part1
+  putStrLn $ show day1Part1Result 
+  day1Part2Result <- day01part2
+  putStrLn $ show day1Part2Result
+
+
 day01part1 :: IO (Either String Int)
 day01part1 = do
   readResult <- readIntsFromFile "data/day01.input"

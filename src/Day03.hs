@@ -23,6 +23,13 @@ data Line = Line { p1 :: (Int, Int), p2 :: (Int, Int) } deriving (Eq, Show)
 
 newtype WirePath = WirePath { paths :: [Path]} deriving (Eq, Show)
 
+day03Main :: IO ()
+day03Main = do
+  day03Part1Result <- day03Part1
+  putStrLn $ show day03Part1Result
+  day03Part2Result <- day03Part2
+  putStrLn $ show day03Part2Result
+
 debug :: a -> String ->  a
 debug = flip trace
 

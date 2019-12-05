@@ -4,6 +4,13 @@ import FileUtils
 
 newtype IntcodeProgram = IntcodeProgram  { memory :: [Int] }
 
+day02Main :: IO ()
+day02Main = do
+  day02Part1Result <- day02part1
+  putStrLn $ show day02Part1Result
+  day02Part2Result <- day02part2
+  putStrLn $ show day02Part2Result
+
 day02part1 :: IO (Either String [Int])
 day02part1 = fmap (memory . start . verb 2 . noun 12) <$> loadProgram
 
