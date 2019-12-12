@@ -1,3 +1,5 @@
 .stack-work/
 advent-of-code2019.cabal
 *~
+
+.DS_Store

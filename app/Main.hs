@@ -16,6 +16,7 @@ runMain ["1"]   = day01Main
 runMain ["2"]   = day02Main
 runMain ["3"]   = day03Main
 runMain ["4"]   = day04Main
+runMain ["5"]   = day05Main
 runMain []      = putStrLn "Missing day number!"     >>= failure
 runMain [_]     = putStrLn "Unimplemented solution!" >>= failure
 runMain (_:_:_) = putStrLn "Too many params!"        >>= failure
