@@ -53,9 +53,9 @@ runProgram program = do
 
 evalInstruction :: IntcodeProgram -> Opcode -> IntcodeProgram
 evalInstruction p'@(IntcodeProgram m p i o) (Add p1m p2m _) =
-  IntcodeProgram (replace m (getParam p' 3 Value) ((getParam p' 1 p1m) + (getParam p' 2 p2m))) (p + 4) i o
+  IntcodeProgram (replace m (getParam p' 3 Value) (getParam p' 1 p1m + getParam p' 2 p2m)) (p + 4) i o
 evalInstruction p'@(IntcodeProgram m p i o) (Mul p1m p2m _) =
-  IntcodeProgram (replace m (getParam p' 3 Value) ((getParam p' 1 p1m) * (getParam p' 2 p2m))) (p + 4) i o
+  IntcodeProgram (replace m (getParam p' 3 Value) (getParam p' 1 p1m * getParam p' 2 p2m)) (p + 4) i o
 evalInstruction p'@(IntcodeProgram m p i o) Input =
   IntcodeProgram (replace m (getParam p' 1 Value) (fromJust i)) (p + 2) i o
 evalInstruction p'@(IntcodeProgram m p i o) Output =
@@ -69,20 +69,17 @@ getParam (IntcodeProgram m p _ _) offset Value    = m !! (p + offset)
 opcode :: IntcodeProgram -> Either String Opcode
 opcode program 
   | opc == 99          = Right End
-  | opc `mod` 100 == 1 = do
-      param1Mode' <- parameterMode opc 1
-      param2Mode' <- parameterMode opc 2
-      param3Mode' <- parameterMode opc 3
-      return $ Add param1Mode' param2Mode' param3Mode'
-  | opc `mod` 100 == 2 = do
-      param1Mode' <- parameterMode opc 1
-      param2Mode' <- parameterMode opc 2
-      param3Mode' <- parameterMode opc 3
-      return $ Mul param1Mode' param2Mode' param3Mode'
+  | opc `mod` 100 == 1 = paramMode3 Add
+  | opc `mod` 100 == 2 = paramMode3 Mul
   | opc `mod` 100 == 3 = Right Input   
   | opc `mod` 100 == 4 = Right Output   
   | otherwise          = Left "Unknown opcode"    
   where opc = memory program !! pointer program
+        paramMode3 op = do
+          param1Mode' <- parameterMode opc 1
+          param2Mode' <- parameterMode opc 2
+          param3Mode' <- parameterMode opc 3
+          return $ op param1Mode' param2Mode' param3Mode'
 
 parameterMode :: Int -> Int -> Either String ParameterMode
 parameterMode n p

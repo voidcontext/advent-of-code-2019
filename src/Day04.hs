@@ -4,8 +4,8 @@ import Data.Char
 
 day04Main :: IO ()
 day04Main = do
-  putStrLn $  show . length . filter id $ fmap (isPassword . toDigits) [start .. end]
-  putStrLn $  show . length . filter id $ fmap (isPassword' . toDigits) [start .. end]
+  print . length . filter id $ fmap (isPassword . toDigits) [start .. end]
+  print . length . filter id $ fmap (isPassword' . toDigits) [start .. end]
 
 start :: Int
 start = 172930
@@ -19,7 +19,7 @@ toDigits n = ord <$> show n
 isPassword :: [Int] -> Bool
 isPassword pw
   | length pw < 6 = False
-  | otherwise     = (hasAscendingDigits (head pw) 0 (tail pw))
+  | otherwise     = hasAscendingDigits (head pw) 0 (tail pw)
   
 isPassword' :: [Int] -> Bool
 isPassword' pw = isPassword pw && any (\s -> length s == 2) (repeatingSubSequences pw)

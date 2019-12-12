@@ -3,10 +3,10 @@ module Day05 where
 import IntcodeComputer
 
 day05Main :: IO ()
-day05Main = do
-  putStrLn $ show day05part1
+day05Main = -- do
+  print day05part1
   -- day02Part2Result <- day02part2
-  -- putStrLn $ show day02Part2Result
+  -- print day02Part2Result
 
 
 puzzleInput :: [Int]

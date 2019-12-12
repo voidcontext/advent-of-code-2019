@@ -26,9 +26,9 @@ newtype WirePath = WirePath { paths :: [Path]} deriving (Eq, Show)
 day03Main :: IO ()
 day03Main = do
   day03Part1Result <- day03Part1
-  putStrLn $ show day03Part1Result
+  print day03Part1Result
   day03Part2Result <- day03Part2
-  putStrLn $ show day03Part2Result
+  print day03Part2Result
 
 debug :: a -> String ->  a
 debug = flip trace
@@ -48,7 +48,7 @@ minStepsToIntersection :: Text.Text -> Text.Text -> Either String Int
 minStepsToIntersection a b = do
   ca <- parseWirePath a
   cb <- parseWirePath b
-  return $ minimum $ fmap (\p -> (calcSteps ca p) + (calcSteps cb p)) $ intersections ca cb
+  return $ minimum $ (\p -> calcSteps ca p + calcSteps cb p) <$> intersections ca cb
 
 
 minManhattanDistance :: Text.Text -> Text.Text -> Either String Int
@@ -61,7 +61,7 @@ parseWirePath :: Text.Text -> Either String WirePath
 parseWirePath text =
   WirePath <$> traverse parseLine (Text.split (==',') text)
   where
-    parseLine lineText = fmap (\l -> Path (directionFromText . Text.head $ lineText) l) $ (fst <$> decimal (Text.tail lineText))
+    parseLine lineText = Path (directionFromText . Text.head $ lineText) <$> (fst <$> decimal (Text.tail lineText))
     directionFromText 'U' = UP
     directionFromText 'D' = DOWN
     directionFromText 'L' = LEFT
@@ -69,10 +69,10 @@ parseWirePath text =
     directionFromText _   = UP -- TODO: this needs to be fixed
 
 intersections :: WirePath -> WirePath -> [(Int, Int)]
-intersections wp1 wp2 =  nub . sort . (filter (/= (0, 0))) . catMaybes $ [intersect' a b | a <- lines' wp1, b <- lines' wp2] 
+intersections wp1 wp2 =  nub . sort . filter (/= (0, 0)) . catMaybes $ [intersect' a b | a <- lines' wp1, b <- lines' wp2] 
 
 manhattanDistanceFromStart :: (Int, Int) -> Int
-manhattanDistanceFromStart (x, y) = abs x + (abs y)
+manhattanDistanceFromStart (x, y) = abs x + abs y
 
 center :: (Int, Int)
 center = (0, 0)
