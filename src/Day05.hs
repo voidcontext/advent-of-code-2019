@@ -3,10 +3,9 @@ module Day05 where
 import IntcodeComputer
 
 day05Main :: IO ()
-day05Main = -- do
+day05Main = do
   print day05part1
-  -- day02Part2Result <- day02part2
-  -- print day02Part2Result
+  print day05part2
 
 
 puzzleInput :: [Int]
@@ -14,3 +13,6 @@ puzzleInput = [3,225,1,225,6,6,1100,1,238,225,104,0,1001,92,74,224,1001,224,-85,
 
 day05part1 :: Either String [Int]
 day05part1 = fmap output . runProgram $ IntcodeProgram puzzleInput 0 (Just 1) []
+
+day05part2 :: Either String [Int]
+day05part2 = fmap output . runProgram $ IntcodeProgram puzzleInput 0 (Just 5) []

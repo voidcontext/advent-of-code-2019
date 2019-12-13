@@ -13,7 +13,7 @@ spec = do
   
   describe "parse" $ do
     it "should parse programs correctly" $ do
-      parse "1,9,10,3,2,3,11,0,99,30,40,50"  `shouldBe` (Right $ IntcodeProgram [1,9,10,3,2,3,11,0,99,30,40,50] 0 Nothing [])
+      parse "1,9,10,3,2,3,11,0,99,30,40,50"  `shouldBe` Right (IntcodeProgram [1,9,10,3,2,3,11,0,99,30,40,50] 0 Nothing [])
 
   describe "start" $ do
     it "should run day02 program" $ do
@@ -30,3 +30,17 @@ spec = do
 
     it "should handle output" $ do
       ((fmap output ) . runProgram  $ IntcodeProgram [3,4,4,4,0] 0 (Just 99) []) `shouldBe` Right [99]
+
+    it "should handle jumps" $ do
+      ((fmap output ) . runProgram  $ IntcodeProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 0 (Just 0) []) `shouldBe` Right [0]
+      ((fmap output ) . runProgram  $ IntcodeProgram [3,12,6,12,15,1,13,14,13,4,13,99,-1,0,1,9] 0 (Just 2) []) `shouldBe` Right [1]
+      
+      ((fmap output ) . runProgram  $ IntcodeProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] 0 (Just 0) []) `shouldBe` Right [0]
+      ((fmap output ) . runProgram  $ IntcodeProgram [3,3,1105,-1,9,1101,0,0,12,4,12,99,1] 0 (Just 2) []) `shouldBe` Right [1]
+
+    it "should handle jumps and comparisons" $ do
+      let m = [3,21,1008,21,8,20,1005,20,22,107,8,21,20,1006,20,31,1106,0,36,98,0,0,1002,21,125,20,4,20,1105,1,46,104,999,1105,1,46,1101,1000,1,20,4,20,1105,1,46,98,99]
+      ((fmap output ) . runProgram  $ IntcodeProgram m 0 (Just 0) []) `shouldBe` Right [999]
+      ((fmap output ) . runProgram  $ IntcodeProgram m 0 (Just 8) []) `shouldBe` Right [1000]
+      ((fmap output ) . runProgram  $ IntcodeProgram m 0 (Just 9) []) `shouldBe` Right [1001]
+      

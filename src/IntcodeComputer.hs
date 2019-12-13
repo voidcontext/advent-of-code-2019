@@ -11,6 +11,7 @@ where
 import Data.Maybe
 import qualified Data.Text    as Text
 import Data.Text.Read
+import Debug.Trace
 
 data IntcodeProgram = IntcodeProgram
   { memory :: [Int]
@@ -22,12 +23,19 @@ data IntcodeProgram = IntcodeProgram
 data ParameterMode = Position | Value deriving (Eq, Show)
 
 data Opcode =
-  Add { param1Mode :: ParameterMode, param2Mode :: ParameterMode, param3Mode :: ParameterMode } |
-  Mul { param1Mode :: ParameterMode, param2Mode :: ParameterMode, param3Mode :: ParameterMode } |
+  Add |
+  Mul |
   Input |
-  Output | 
+  Output |
+  JumpIfTrue |
+  JumpIfFalse |
+  LessThan |
+  Equals |
   End
   deriving (Eq, Show)
+
+debug :: a -> String ->  a
+debug = flip trace
 
 parse :: Text.Text -> Either String IntcodeProgram
 parse program = do
@@ -45,48 +53,73 @@ verb val (IntcodeProgram m p i o) = IntcodeProgram (replace m 2 val) p i o
 
 runProgram ::  IntcodeProgram  -> Either String IntcodeProgram
 runProgram program = do
-  opcode' <-  opcode program
+  opcode' <-  opcode program 
   runOrExit (evalInstruction program opcode') opcode'
   where runOrExit program' lastOpcode
           | lastOpcode == End = Right program'
           | otherwise         = runProgram program'
 
-evalInstruction :: IntcodeProgram -> Opcode -> IntcodeProgram
-evalInstruction p'@(IntcodeProgram m p i o) (Add p1m p2m _) =
-  IntcodeProgram (replace m (getParam p' 3 Value) (getParam p' 1 p1m + getParam p' 2 p2m)) (p + 4) i o
-evalInstruction p'@(IntcodeProgram m p i o) (Mul p1m p2m _) =
-  IntcodeProgram (replace m (getParam p' 3 Value) (getParam p' 1 p1m * getParam p' 2 p2m)) (p + 4) i o
-evalInstruction p'@(IntcodeProgram m p i o) Input =
-  IntcodeProgram (replace m (getParam p' 1 Value) (fromJust i)) (p + 2) i o
-evalInstruction p'@(IntcodeProgram m p i o) Output =
-  IntcodeProgram m (p + 2) i (o ++ [getParam p' 1 Position])
-evalInstruction program End = program
 
-getParam :: IntcodeProgram -> Int -> ParameterMode -> Int
-getParam (IntcodeProgram m p _ _) offset Position = m !! (m !! (p + offset))
-getParam (IntcodeProgram m p _ _) offset Value    = m !! (p + offset) 
-      
+
+evalInstruction :: IntcodeProgram -> Opcode -> IntcodeProgram
+evalInstruction program End                        = program
+evalInstruction p Add                              = incrementPointerBy 4 . modifyMemory (binaryOp (+) p) $ p
+evalInstruction p Mul                              = incrementPointerBy 4 . modifyMemory (binaryOp (*) p) $ p
+evalInstruction p Input                            = incrementPointerBy 2 . modifyMemory (replace' (paramValue p 1) (fromJust $ input p)) $ p
+evalInstruction p'@(IntcodeProgram m p i o) Output = IntcodeProgram m (p + 2) i (o ++ [param p' 1])
+evalInstruction p JumpIfTrue                       = if test (/= 0) p then movePointer (param p 2) p else incrementPointerBy 3 p
+evalInstruction p  JumpIfFalse                     = if test (== 0) p then movePointer (param p 2) p else incrementPointerBy 3 p
+evalInstruction p LessThan                         = incrementPointerBy 4 .modifyMemory (binaryOp (\p1 p2 -> if p1 < p2 then 1 else 0) p) $ p 
+evalInstruction p Equals                           = incrementPointerBy 4 .modifyMemory (binaryOp (\p1 p2 -> if p1 == p2 then 1 else 0) p) $ p 
+
+binaryOp :: (Int -> Int -> Int) -> IntcodeProgram -> ([Int] -> [Int])
+binaryOp f program = replace' (paramValue program 3) (f (param program 1) (param program 2))
+
+test :: (Int -> Bool) -> IntcodeProgram -> Bool
+test f program = f (param program 1) 
+
+modifyMemory :: ([Int] -> [Int]) -> IntcodeProgram -> IntcodeProgram
+modifyMemory f (IntcodeProgram m p i o) = IntcodeProgram (f m) p i o
+
+movePointer :: Int -> IntcodeProgram -> IntcodeProgram
+movePointer address (IntcodeProgram m _ i o) = IntcodeProgram m address i o
+
+incrementPointerBy :: Int -> IntcodeProgram -> IntcodeProgram
+incrementPointerBy step (IntcodeProgram m p i o) = IntcodeProgram m (p + step) i o
+
+param :: IntcodeProgram -> Int -> Int
+param program offset = param' pm
+  where pm = paramMode offset program
+        pv = paramValue program offset
+        param' Position = (!! pv) . memory $  program
+        param' Value    = pv
+
+paramValue :: IntcodeProgram -> Int -> Int
+paramValue (IntcodeProgram m p _ _) offset = m !! (p + offset)
+
+paramMode :: Int -> IntcodeProgram -> ParameterMode
+paramMode parameter (IntcodeProgram m p _ _)
+  | mode == 0 = Position
+  | otherwise = Value
+  where opc  = m !! p
+        mode = (opc `mod` (10 ^ (parameter + 2)))  `div` (10 ^ (parameter + 1)) 
+
 opcode :: IntcodeProgram -> Either String Opcode
 opcode program 
   | opc == 99          = Right End
-  | opc `mod` 100 == 1 = paramMode3 Add
-  | opc `mod` 100 == 2 = paramMode3 Mul
+  | opc `mod` 100 == 1 = Right Add
+  | opc `mod` 100 == 2 = Right Mul
   | opc `mod` 100 == 3 = Right Input   
   | opc `mod` 100 == 4 = Right Output   
+  | opc `mod` 100 == 5 = Right JumpIfTrue   
+  | opc `mod` 100 == 6 = Right JumpIfFalse   
+  | opc `mod` 100 == 7 = Right LessThan
+  | opc `mod` 100 == 8 = Right Equals 
   | otherwise          = Left "Unknown opcode"    
   where opc = memory program !! pointer program
-        paramMode3 op = do
-          param1Mode' <- parameterMode opc 1
-          param2Mode' <- parameterMode opc 2
-          param3Mode' <- parameterMode opc 3
-          return $ op param1Mode' param2Mode' param3Mode'
-
-parameterMode :: Int -> Int -> Either String ParameterMode
-parameterMode n p
-  | mode == 0 = Right Position
-  | mode == 1 = Right Value
-  | otherwise = Left "Unknown parameter mode"
-  where mode = (n `mod` (10 ^ (p + 2)))  `div` (10 ^ (p + 1)) 
 
 replace :: [Int] -> Int -> Int -> [Int]
 replace xs ind value = take ind xs ++ [value] ++ drop (ind + 1) xs
+
+replace' :: Int -> Int -> [Int] -> [Int]
+replace' ind value xs = take ind xs ++ [value] ++ drop (ind + 1) xs
