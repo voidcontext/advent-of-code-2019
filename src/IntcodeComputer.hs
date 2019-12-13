@@ -1,17 +1,17 @@
 module IntcodeComputer
-  -- ( IntcodeProgram (IntcodeProgram)
-  -- , parse
-  -- , memory
-  -- , runProgram
-  -- , noun
-  -- , verb
-  -- )
+  ( IntcodeProgram (IntcodeProgram)
+  , parse
+  , memory
+  , output
+  , runProgram
+  , noun
+  , verb
+  )
 where
 
 import Data.Maybe
 import qualified Data.Text    as Text
 import Data.Text.Read
-import Debug.Trace
 
 data IntcodeProgram = IntcodeProgram
   { memory :: [Int]
@@ -33,9 +33,6 @@ data Opcode =
   Equals |
   End
   deriving (Eq, Show)
-
-debug :: a -> String ->  a
-debug = flip trace
 
 parse :: Text.Text -> Either String IntcodeProgram
 parse program = do
@@ -59,8 +56,6 @@ runProgram program = do
           | lastOpcode == End = Right program'
           | otherwise         = runProgram program'
 
-
-
 evalInstruction :: IntcodeProgram -> Opcode -> IntcodeProgram
 evalInstruction program End                        = program
 evalInstruction p Add                              = incrementPointerBy 4 . modifyMemory (binaryOp (+) p) $ p
@@ -68,7 +63,7 @@ evalInstruction p Mul                              = incrementPointerBy 4 . modi
 evalInstruction p Input                            = incrementPointerBy 2 . modifyMemory (replace' (paramValue p 1) (fromJust $ input p)) $ p
 evalInstruction p'@(IntcodeProgram m p i o) Output = IntcodeProgram m (p + 2) i (o ++ [param p' 1])
 evalInstruction p JumpIfTrue                       = if test (/= 0) p then movePointer (param p 2) p else incrementPointerBy 3 p
-evalInstruction p  JumpIfFalse                     = if test (== 0) p then movePointer (param p 2) p else incrementPointerBy 3 p
+evalInstruction p JumpIfFalse                      = if test (== 0) p then movePointer (param p 2) p else incrementPointerBy 3 p
 evalInstruction p LessThan                         = incrementPointerBy 4 .modifyMemory (binaryOp (\p1 p2 -> if p1 < p2 then 1 else 0) p) $ p 
 evalInstruction p Equals                           = incrementPointerBy 4 .modifyMemory (binaryOp (\p1 p2 -> if p1 == p2 then 1 else 0) p) $ p 
 
