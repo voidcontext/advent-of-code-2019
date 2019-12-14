@@ -43,10 +43,10 @@ toDecimal :: Text.Text -> Either String Int
 toDecimal text = fst <$> decimal text
 
 noun :: Int -> IntcodeProgram -> IntcodeProgram
-noun val (IntcodeProgram m p i o) = IntcodeProgram (replace m 1 val) p i o
+noun val (IntcodeProgram m p i o) = IntcodeProgram (replace 1 val m) p i o
 
 verb :: Int -> IntcodeProgram -> IntcodeProgram
-verb val (IntcodeProgram m p i o) = IntcodeProgram (replace m 2 val) p i o
+verb val (IntcodeProgram m p i o) = IntcodeProgram (replace 2 val m) p i o
 
 runProgram ::  IntcodeProgram  -> Either String IntcodeProgram
 runProgram program = do
@@ -60,15 +60,15 @@ evalInstruction :: IntcodeProgram -> Opcode -> IntcodeProgram
 evalInstruction program End                        = program
 evalInstruction p Add                              = incrementPointerBy 4 . modifyMemory (binaryOp (+) p) $ p
 evalInstruction p Mul                              = incrementPointerBy 4 . modifyMemory (binaryOp (*) p) $ p
-evalInstruction p Input                            = incrementPointerBy 2 . modifyMemory (replace' (paramValue p 1) (fromJust $ input p)) $ p
+evalInstruction p Input                            = incrementPointerBy 2 . modifyMemory (replace (paramValue p 1) (fromJust $ input p)) $ p
 evalInstruction p'@(IntcodeProgram m p i o) Output = IntcodeProgram m (p + 2) i (o ++ [param p' 1])
 evalInstruction p JumpIfTrue                       = if test (/= 0) p then movePointer (param p 2) p else incrementPointerBy 3 p
 evalInstruction p JumpIfFalse                      = if test (== 0) p then movePointer (param p 2) p else incrementPointerBy 3 p
-evalInstruction p LessThan                         = incrementPointerBy 4 .modifyMemory (binaryOp (\p1 p2 -> if p1 < p2 then 1 else 0) p) $ p 
-evalInstruction p Equals                           = incrementPointerBy 4 .modifyMemory (binaryOp (\p1 p2 -> if p1 == p2 then 1 else 0) p) $ p 
+evalInstruction p LessThan                         = incrementPointerBy 4 . modifyMemory (binaryOp (\p1 p2 -> if p1 < p2 then 1 else 0) p) $ p 
+evalInstruction p Equals                           = incrementPointerBy 4 . modifyMemory (binaryOp (\p1 p2 -> if p1 == p2 then 1 else 0) p) $ p 
 
 binaryOp :: (Int -> Int -> Int) -> IntcodeProgram -> ([Int] -> [Int])
-binaryOp f program = replace' (paramValue program 3) (f (param program 1) (param program 2))
+binaryOp f program = replace (paramValue program 3) (f (param program 1) (param program 2))
 
 test :: (Int -> Bool) -> IntcodeProgram -> Bool
 test f program = f (param program 1) 
@@ -113,8 +113,5 @@ opcode program
   | otherwise          = Left "Unknown opcode"    
   where opc = memory program !! pointer program
 
-replace :: [Int] -> Int -> Int -> [Int]
-replace xs ind value = take ind xs ++ [value] ++ drop (ind + 1) xs
-
-replace' :: Int -> Int -> [Int] -> [Int]
-replace' ind value xs = take ind xs ++ [value] ++ drop (ind + 1) xs
+replace :: Int -> Int -> [Int] -> [Int]
+replace ind value xs = take ind xs ++ [value] ++ drop (ind + 1) xs
